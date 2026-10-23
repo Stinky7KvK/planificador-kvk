@@ -1,0 +1,1403 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Planificador de Santuarios — KvK</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f1f3f5;
+  color: #222;
+}
+
+header {
+  position: relative;
+  background: #20252b;
+  color: #fff;
+  padding: 13px 54px 13px 16px;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.language-control {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 12px;
+  z-index: 20;
+}
+
+.language-menu {
+  display: none;
+  position: absolute;
+  top: 38px;
+  right: 0;
+  min-width: 155px;
+  padding: 5px;
+  background: #fff;
+  color: #222;
+  border: 1px solid #c8cdd2;
+  border-radius: 8px;
+  box-shadow: 0 5px 18px rgba(0,0,0,.22);
+  z-index: 50;
+}
+.language-control.open .language-menu { display: block; }
+.language-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin: 0;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 5px;
+  background: #fff;
+  color: #222;
+  font-size: 13px;
+  font-weight: normal;
+}
+.language-menu button:hover, .language-menu button:focus { background: #edf1f5; }
+.language-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  margin: 0;
+  border: 1px solid rgba(255,255,255,.45);
+  border-radius: 7px;
+  background: #343b44;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+}
+.language-toggle:hover { background: #46515d; }
+
+.right-history-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.right-history-buttons button {
+  margin-top: 0;
+  font-size: 12px;
+}
+
+header p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  opacity: .9;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px;
+  width: 100%;
+}
+
+.panel {
+  background: #fff;
+  border: 1px solid #d2d5d8;
+  border-radius: 8px;
+  padding: 12px;
+  align-self: start;
+}
+
+label {
+  display: block;
+  font-size: 12px;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+input,
+select,
+button {
+  width: 100%;
+  padding: 9px;
+  margin-top: 5px;
+  border: 1px solid #bbb;
+  border-radius: 5px;
+  font-family: inherit;
+}
+
+button {
+  cursor: pointer;
+  background: #eee;
+  color: #222;
+  font-weight: bold;
+  margin-top: 8px;
+}
+
+button:hover {
+  background: #ddd;
+}
+
+.history-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.history-buttons button {
+  margin-top: 8px;
+}
+
+#place {
+  background: #dcebd8;
+}
+
+#move {
+  background: #dce6f5;
+}
+
+#remove {
+  background: #f5dfdc;
+}
+
+.map-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 190px;
+  gap: 10px;
+  align-items: start;
+}
+
+.zoom-panel {
+  background: #fff;
+  border: 1px solid #d2d5d8;
+  border-radius: 8px;
+  padding: 12px;
+  position: sticky;
+  top: 12px;
+}
+
+.zoom-panel label {
+  margin-top: 12px;
+}
+
+.zoom-panel input[type="range"] {
+  width: 100%;
+  padding: 0;
+}
+
+.zoom-panel button {
+  font-size: 12px;
+}
+
+.zoom-value {
+  font-weight: bold;
+  text-align: center;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+#editorWrap {
+  width: 100%;
+  height: calc(100vh - 145px);
+  min-height: 400px;
+  overflow: auto;
+  background: #e6e8eb;
+  border: 2px solid #343a40;
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.map-title {
+  background: #20252b;
+  color: #fff;
+  border: 2px solid #343a40;
+  border-bottom: 0;
+  border-radius: 6px 6px 0 0;
+  padding: 12px 14px;
+  text-align: center;
+  font-weight: bold;
+  letter-spacing: .5px;
+  font-size: 15px;
+}
+
+.map-frame {
+  width: 1054px;
+  height: 1054px;
+  border: 2px solid #20252b;
+  background: #dfc9a8;
+}
+
+#map {
+  display: block;
+  width: 1050px;
+  height: 1050px;
+  max-width: none;
+  background: #dfc9a8;
+  cursor: crosshair;
+  transform-origin: top left;
+}
+
+.color-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 5px;
+  font-size: 12px;
+  color: #555;
+}
+
+.color-control input[type="color"] {
+  width: 54px;
+  height: 38px;
+  padding: 3px;
+  margin: 0;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.stats {
+  background: #f7f7f7;
+  border-radius: 5px;
+  padding: 9px;
+  margin-top: 12px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.small {
+  font-size: 11px;
+  color: #666;
+  margin-top: 10px;
+  line-height: 1.5;
+}
+
+.mode {
+  margin-top: 10px;
+  padding: 8px;
+  background: #f1f3f5;
+  border-radius: 5px;
+  font-size: 12px;
+}
+
+@media (max-width: 800px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  #editorWrap {
+    height: 65vh;
+    min-height: 400px;
+    padding: 6px;
+  }
+
+  .map-title {
+    font-size: 12px;
+    padding: 10px 8px;
+  }
+
+  .map-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .zoom-panel {
+    position: static;
+    order: -1;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="language-control" id="languageControl">
+    <button type="button" class="language-toggle" id="languageToggle" aria-label="Cambiar idioma" title="Cambiar idioma" aria-expanded="false">🌐</button>
+    <div class="language-menu" id="languageMenu" role="menu" aria-label="Seleccionar idioma">
+      <button type="button" data-language="es" role="menuitem">🇪🇸 Español</button>
+      <button type="button" data-language="en" role="menuitem">🇬🇧 English</button>
+      <button type="button" data-language="de" role="menuitem">🇩🇪 Deutsch</button>
+      <button type="button" data-language="ru" role="menuitem">🇷🇺 Русский</button>
+      <button type="button" data-language="fr" role="menuitem">🇫🇷 Français</button>
+      <button type="button" data-language="it" role="menuitem">🇮🇹 Italiano</button>
+    </div>
+  </div>
+  <h1 id="appTitle">Planificador de Santuarios — KvK</h1>
+  <p id="appSubtitle">Mapa 105 × 105 · Ciudad Real 21 × 21 · Santuarios 3 × 3</p>
+</header>
+
+<div class="layout">
+
+  <section class="panel">
+    <b id="planningTitle">Planificación de santuarios</b>
+
+    <label for="name" id="nameLabel">Nombre del santuario</label>
+    <select id="name">
+      <option value="TLU">TLU</option>
+      <option value="VOID">VOID</option>
+      <option value="NWP">NWP</option>
+      <option value="CHIP">CHIP</option>
+      <option value="Valk">Valk</option>
+      <option value="LFG">LFG</option>
+      <option value="FIR">FIR</option>
+      <option value="easg">easg</option>
+      <option value="TyT">TyT</option>
+      <option value="AsRi">AsRi</option>
+      <option value="pika">pika</option>
+      <option value="UAN">UAN</option>
+      <option value="MFNS">MFNS</option>
+      <option value="LOST">LOST</option>
+      <option value="LFP1">LFP1</option>
+      <option value="Otros">Otros</option>
+    </select>
+    <input id="customName" type="text" placeholder="Escribe el nombre personalizado" maxlength="30" style="display:none;">
+
+    <label for="sanctuaryColor" id="colorLabel">Color del santuario</label>
+    <div class="color-control">
+      <input id="sanctuaryColor" type="color" value="#57432f" aria-label="Elegir color del santuario">
+      <span id="colorHelp">Elige el color del recuadro</span>
+    </div>
+
+    <button id="place">Colocar santuario (clic en mapa)</button>
+    <button id="move">Mover santuario</button>
+    <button id="remove">Eliminar santuario</button>
+    <button id="clear">Borrar todo</button>
+    <button id="downloadImage">Descargar cuadrícula como imagen</button>
+
+    <div class="mode" id="modeInfo">
+      Modo actual: colocar santuario.
+    </div>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="small">
+      <b id="howToTitle">Cómo utilizarlo</b>
+      <br><span id="helpPlace">• Colocar: escribe un nombre y haz clic en la casilla que será el centro del santuario.</span>
+      <br><span id="helpMove">• Mover: selecciona un santuario y haz clic en su nueva casilla central.</span>
+      <br><span id="helpRemove">• Eliminar: haz clic sobre el santuario que quieras quitar.</span>
+      <br><span id="helpHistory">• Deshacer/Rehacer: revierte o recupera cambios.</span>
+      <br><span id="helpPan">• Mantén pulsado el botón derecho y arrastra para mover la vista del mapa.</span>
+      <br><span id="helpSize">• Cada santuario ocupa 3 × 3 casillas.</span>
+            <br><span id="helpTowers">• Las cuatro torres de 3 × 3 están marcadas en las esquinas de la Ciudad Real.</span>
+      <br><span id="helpOverlap">• No se permiten superposiciones ni ocupar la Ciudad Real.</span>
+      <br><span id="helpInvalid">• Las ubicaciones inválidas se ignoran sin mostrar alertas.</span>
+    </div>
+  </section>
+
+  <section class="map-section">
+    <div class="map-title" id="mapTitle">ZONA MALDITA DE CIUDAD REAL / REINO 177</div>
+    <div class="map-layout">
+      <div id="editorWrap">
+        <div class="map-frame">
+          <canvas id="map"></canvas>
+        </div>
+      </div>
+      <aside class="zoom-panel">
+        <b id="zoomPanelTitle">Zoom de la plantilla</b>
+        <div class="right-history-buttons">
+          <button id="undo" type="button">↶ Deshacer</button>
+          <button id="redo" type="button">↷ Rehacer</button>
+        </div>
+        <label for="zoom" id="zoomLabel">Ampliación</label>
+        <input id="zoom" type="range" min="50" max="200" step="10" value="100">
+        <div class="zoom-value" id="zoomValue">100%</div>
+        <button id="zoomOut" type="button">− Alejar</button>
+        <button id="zoomIn" type="button">+ Acercar</button>
+        <button id="zoomReset" type="button">Restablecer zoom</button>
+        <p class="small" id="zoomHelp">También puedes desplazar la vista arrastrando con el botón derecho del ratón.</p>
+      </aside>
+    </div>
+  </section>
+
+</div>
+
+<script>
+const canvas = document.getElementById('map');
+const ctx = canvas.getContext('2d');
+
+const cell = 10;
+const SANCTUARY_SIZE = 3;
+
+let mode = 'place';
+let data = [];
+let moving = -1;
+
+// Historial para deshacer y rehacer colocaciones, movimientos y eliminaciones.
+let undoStack = [];
+let redoStack = [];
+
+function snapshot() {
+  return JSON.stringify(data);
+}
+
+function saveHistory() {
+  undoStack.push(snapshot());
+  if (undoStack.length > 100) undoStack.shift();
+  redoStack = [];
+  updateHistoryButtons();
+}
+
+function restoreSnapshot(serialized) {
+  data = JSON.parse(serialized);
+  moving = -1;
+  draw();
+  updateHistoryButtons();
+}
+
+function undo() {
+  if (!undoStack.length) return;
+  redoStack.push(snapshot());
+  restoreSnapshot(undoStack.pop());
+}
+
+function redo() {
+  if (!redoStack.length) return;
+  undoStack.push(snapshot());
+  restoreSnapshot(redoStack.pop());
+}
+
+function updateHistoryButtons() {
+  const undoButton = $('undo');
+  const redoButton = $('redo');
+  if (undoButton) undoButton.disabled = undoStack.length === 0;
+  if (redoButton) redoButton.disabled = redoStack.length === 0;
+}
+
+function $(id) {
+  return document.getElementById(id);
+}
+
+
+const translations = {
+  es: {
+    language: 'Idioma:', appTitle: 'Planificador de Santuarios — KvK',
+    subtitle: 'Mapa 105 × 105 · Ciudad Real 21 × 21 · Santuarios 3 × 3',
+    planning: 'Planificación de santuarios', name: 'Nombre del santuario',
+    color: 'Color del santuario', colorHelp: 'Elige el color del recuadro',
+    place: 'Colocar santuario (clic en mapa)', move: 'Mover santuario',
+    remove: 'Eliminar santuario', undo: '↶ Deshacer', redo: '↷ Rehacer',
+    clear: 'Borrar todo', download: 'Descargar cuadrícula como imagen',
+    howTo: 'Cómo utilizarlo',
+    helpPlace: '• Colocar: elige un nombre y haz clic en la casilla que será el centro del santuario.',
+    helpMove: '• Mover: selecciona un santuario y haz clic en su nueva casilla central.',
+    helpRemove: '• Eliminar: haz clic sobre el santuario que quieras quitar.',
+    helpHistory: '• Deshacer/Rehacer: revierte o recupera cambios.',
+    helpPan: '• Mantén pulsado el botón derecho y arrastra para mover la vista del mapa.',
+    helpSize: '• Cada santuario ocupa 3 × 3 casillas.',
+    helpTowers: '• Las cuatro torres de 3 × 3 están marcadas en las esquinas de la Ciudad Real.',
+    helpOverlap: '• No se permiten superposiciones ni ocupar la Ciudad Real.',
+    helpInvalid: '• Las ubicaciones inválidas se ignoran sin mostrar alertas.',
+    mapTitle: 'ZONA MALDITA DE CIUDAD REAL / REINO 177',
+    zoomTitle: 'Zoom de la plantilla', zoom: 'Ampliación', zoomOut: '− Alejar',
+    zoomIn: '+ Acercar', zoomReset: 'Restablecer zoom',
+    zoomHelp: 'También puedes desplazar la vista arrastrando con el botón derecho del ratón.',
+    placeMode: 'Modo actual: colocar santuario.',
+    moveMode: 'Modo actual: mover santuario. Selecciona uno y luego su nueva casilla central.',
+    removeMode: 'Modo actual: eliminar santuario.',
+    stats: 'Santuarios', countByName: 'Recuento por nombre',
+    none: 'Aún no hay santuarios.', legend: 'LEYENDA DE SANTUARIOS',
+    placed: 'Santuarios colocados', theoretical: 'Total teórico',
+    totalPlaced: 'TOTAL DE SANTUARIOS COLOCADOS',
+    emptyLegend: 'Todavía no hay santuarios colocados.',
+    confirmClear: '¿Borrar todos los santuarios del diseño?',
+    city: 'CIUDAD REAL', towers: ['OESTE','NORTE','ESTE','SUR'],
+    panHint: 'Escribe un nombre personalizado', otherOption: 'Otros'
+  },
+  en: {
+    language: 'Language:', appTitle: 'Sanctuary Planner — KvK',
+    subtitle: 'Map 105 × 105 · Royal City 21 × 21 · Sanctuaries 3 × 3',
+    planning: 'Sanctuary planning', name: 'Sanctuary name', color: 'Sanctuary color',
+    colorHelp: 'Choose the box color', place: 'Place sanctuary (click map)',
+    move: 'Move sanctuary', remove: 'Remove sanctuary', undo: '↶ Undo', redo: '↷ Redo',
+    clear: 'Clear all', download: 'Download grid as image', howTo: 'How to use',
+    helpPlace: '• Place: choose a name and click the tile that will be the sanctuary center.',
+    helpMove: '• Move: select a sanctuary and click its new center tile.',
+    helpRemove: '• Remove: click the sanctuary you want to remove.',
+    helpHistory: '• Undo/Redo: reverse or restore changes.',
+    helpPan: '• Hold the right mouse button and drag to move the map view.',
+    helpSize: '• Each sanctuary occupies 3 × 3 tiles.',
+    helpTowers: '• The four 3 × 3 towers are marked at the corners of the Royal City.',
+    helpOverlap: '• Overlapping or occupying the Royal City is not allowed.',
+    helpInvalid: '• Invalid locations are ignored without alerts.',
+    mapTitle: 'CURSED ROYAL CITY ZONE / KINGDOM 177', zoomTitle: 'Map zoom',
+    zoom: 'Zoom', zoomOut: '− Zoom out', zoomIn: '+ Zoom in', zoomReset: 'Reset zoom',
+    zoomHelp: 'You can also pan by dragging with the right mouse button.',
+    placeMode: 'Current mode: place sanctuary.',
+    moveMode: 'Current mode: move sanctuary. Select one, then click its new center tile.',
+    removeMode: 'Current mode: remove sanctuary.', stats: 'Sanctuaries',
+    countByName: 'Count by name', none: 'No sanctuaries yet.', legend: 'SANCTUARY LEGEND',
+    placed: 'Sanctuaries placed', theoretical: 'Theoretical total',
+    totalPlaced: 'TOTAL SANCTUARIES PLACED', emptyLegend: 'No sanctuaries placed yet.',
+    confirmClear: 'Clear all sanctuaries from the design?', city: 'ROYAL CITY',
+    towers: ['WEST','NORTH','EAST','SOUTH'], panHint: 'Enter a custom name', otherOption: 'Other'
+  },
+  de: {
+    language: 'Sprache:', appTitle: 'Heiligtum-Planer — KvK',
+    subtitle: 'Karte 105 × 105 · Königsstadt 21 × 21 · Heiligtümer 3 × 3',
+    planning: 'Heiligtumsplanung', name: 'Name des Heiligtums', color: 'Farbe des Heiligtums',
+    colorHelp: 'Farbe des Feldes auswählen', place: 'Heiligtum platzieren (Karte anklicken)',
+    move: 'Heiligtum verschieben', remove: 'Heiligtum entfernen', undo: '↶ Rückgängig',
+    redo: '↷ Wiederholen', clear: 'Alles löschen', download: 'Raster als Bild herunterladen',
+    howTo: 'Anleitung', helpPlace: '• Platzieren: Namen wählen und das mittlere Feld anklicken.',
+    helpMove: '• Verschieben: Heiligtum auswählen und neues Mittelfeld anklicken.',
+    helpRemove: '• Entfernen: Das zu löschende Heiligtum anklicken.',
+    helpHistory: '• Rückgängig/Wiederholen: Änderungen zurücknehmen oder wiederherstellen.',
+    helpPan: '• Rechte Maustaste gedrückt halten und ziehen, um die Karte zu verschieben.',
+    helpSize: '• Jedes Heiligtum belegt 3 × 3 Felder.',
+    helpTowers: '• Die vier 3 × 3 Türme sind an den Ecken der Königsstadt markiert.',
+    helpOverlap: '• Überlappungen und die Königsstadt sind nicht erlaubt.',
+    helpInvalid: '• Ungültige Positionen werden ohne Meldung ignoriert.',
+    mapTitle: 'VERFLUCHTE KÖNIGSSTADT-ZONE / KÖNIGREICH 177',
+    zoomTitle: 'Kartenzoom', zoom: 'Vergrößerung', zoomOut: '− Verkleinern',
+    zoomIn: '+ Vergrößern', zoomReset: 'Zoom zurücksetzen',
+    zoomHelp: 'Die Ansicht lässt sich auch mit gedrückter rechter Maustaste verschieben.',
+    placeMode: 'Aktueller Modus: Heiligtum platzieren.',
+    moveMode: 'Aktueller Modus: Heiligtum verschieben. Erst auswählen, dann neues Mittelfeld anklicken.',
+    removeMode: 'Aktueller Modus: Heiligtum entfernen.', stats: 'Heiligtümer',
+    countByName: 'Anzahl nach Name', none: 'Noch keine Heiligtümer.',
+    legend: 'HEILIGTUM-LEGENDE', placed: 'Platzierte Heiligtümer',
+    theoretical: 'Theoretische Gesamtzahl', totalPlaced: 'HEILIGTÜMER INSGESAMT',
+    emptyLegend: 'Noch keine Heiligtümer platziert.', confirmClear: 'Alle Heiligtümer aus dem Entwurf löschen?',
+    city: 'KÖNIGSSTADT', towers: ['WESTEN','NORDEN','OSTEN','SÜDEN'],
+    panHint: 'Benutzerdefinierten Namen eingeben', otherOption: 'Andere'
+  },
+  ru: {
+    language: 'Язык:', appTitle: 'Планировщик святилищ — KvK',
+    subtitle: 'Карта 105 × 105 · Королевский город 21 × 21 · Святилища 3 × 3',
+    planning: 'Планирование святилищ', name: 'Название святилища',
+    color: 'Цвет святилища', colorHelp: 'Выберите цвет квадрата',
+    place: 'Разместить святилище (щелкните по карте)', move: 'Переместить святилище',
+    remove: 'Удалить святилище', undo: '↶ Отменить', redo: '↷ Повторить',
+    clear: 'Очистить всё', download: 'Скачать сетку как изображение',
+    howTo: 'Как пользоваться',
+    helpPlace: '• Размещение: выберите название и щелкните по центральной клетке.',
+    helpMove: '• Перемещение: выберите святилище и щелкните по новой центральной клетке.',
+    helpRemove: '• Удаление: щелкните по святилищу, которое нужно удалить.',
+    helpHistory: '• Отменить/Повторить: отмена или восстановление изменений.',
+    helpPan: '• Удерживайте правую кнопку мыши и перетаскивайте, чтобы двигать карту.',
+    helpSize: '• Каждое святилище занимает 3 × 3 клетки.',
+    helpTowers: '• Четыре башни 3 × 3 отмечены по углам Королевского города.',
+    helpOverlap: '• Нельзя допускать наложения или занимать Королевский город.',
+    helpInvalid: '• Недопустимые позиции игнорируются без предупреждений.',
+    mapTitle: 'ПРОКЛЯТАЯ ЗОНА КОРОЛЕВСКОГО ГОРОДА / КОРОЛЕВСТВО 177',
+    zoomTitle: 'Масштаб карты', zoom: 'Масштаб', zoomOut: '− Уменьшить',
+    zoomIn: '+ Увеличить', zoomReset: 'Сбросить масштаб',
+    zoomHelp: 'Также можно перемещать карту, удерживая правую кнопку мыши.',
+    placeMode: 'Текущий режим: размещение святилища.',
+    moveMode: 'Текущий режим: перемещение. Выберите святилище, затем новое центральное поле.',
+    removeMode: 'Текущий режим: удаление святилища.', stats: 'Святилища',
+    countByName: 'Количество по названию', none: 'Святилищ пока нет.',
+    legend: 'ЛЕГЕНДА СВЯТИЛИЩ', placed: 'Размещено святилищ',
+    theoretical: 'Теоретический максимум', totalPlaced: 'ВСЕГО РАЗМЕЩЕНО СВЯТИЛИЩ',
+    emptyLegend: 'Святилия ещё не размещены.', confirmClear: 'Удалить все святилища из схемы?',
+    city: 'КОРОЛЕВСКИЙ ГОРОД', towers: ['ЗАПАД','СЕВЕР','ВОСТОК','ЮГ'],
+    panHint: 'Введите другое название', otherOption: 'Другое'
+  },
+  fr: {
+    language: 'Langue :', appTitle: 'Planificateur de sanctuaires — KvK',
+    subtitle: 'Carte 105 × 105 · Ville royale 21 × 21 · Sanctuaires 3 × 3',
+    planning: 'Planification des sanctuaires', name: 'Nom du sanctuaire',
+    color: 'Couleur du sanctuaire', colorHelp: 'Choisissez la couleur du carré',
+    place: 'Placer le sanctuaire (cliquer sur la carte)', move: 'Déplacer le sanctuaire',
+    remove: 'Supprimer le sanctuaire', undo: '↶ Annuler', redo: '↷ Rétablir',
+    clear: 'Tout effacer', download: 'Télécharger la grille en image',
+    howTo: 'Mode d’emploi',
+    helpPlace: '• Placer : choisissez un nom et cliquez sur la case centrale du sanctuaire.',
+    helpMove: '• Déplacer : sélectionnez un sanctuaire puis cliquez sur sa nouvelle case centrale.',
+    helpRemove: '• Supprimer : cliquez sur le sanctuaire à retirer.',
+    helpHistory: '• Annuler/Rétablir : annulez ou restaurez les modifications.',
+    helpPan: '• Maintenez le bouton droit de la souris et faites glisser pour déplacer la carte.',
+    helpSize: '• Chaque sanctuaire occupe 3 × 3 cases.',
+    helpTowers: '• Les quatre tours de 3 × 3 sont indiquées aux coins de la Ville royale.',
+    helpOverlap: '• Les chevauchements et l’occupation de la Ville royale sont interdits.',
+    helpInvalid: '• Les emplacements invalides sont ignorés sans alerte.',
+    mapTitle: 'ZONE MAUDITE DE LA VILLE ROYALE / ROYAUME 177',
+    zoomTitle: 'Zoom de la carte', zoom: 'Agrandissement', zoomOut: '− Dézoomer',
+    zoomIn: '+ Zoomer', zoomReset: 'Réinitialiser le zoom',
+    zoomHelp: 'Vous pouvez aussi déplacer la vue en faisant glisser avec le bouton droit.',
+    placeMode: 'Mode actuel : placer un sanctuaire.',
+    moveMode: 'Mode actuel : déplacer un sanctuaire. Sélectionnez-en un puis sa nouvelle case centrale.',
+    removeMode: 'Mode actuel : supprimer un sanctuaire.', stats: 'Sanctuaires',
+    countByName: 'Nombre par nom', none: 'Aucun sanctuaire pour le moment.',
+    legend: 'LÉGENDE DES SANCTUAIRES', placed: 'Sanctuaires placés',
+    theoretical: 'Total théorique', totalPlaced: 'TOTAL DES SANCTUAIRES PLACÉS',
+    emptyLegend: 'Aucun sanctuaire placé pour le moment.',
+    confirmClear: 'Effacer tous les sanctuaires du plan?', city: 'VILLE ROYALE',
+    towers: ['OUEST','NORD','EST','SUD'], panHint: 'Saisissez un nom personnalisé', otherOption: 'Autres'
+  },
+  it: {
+    language: 'Lingua:', appTitle: 'Pianificatore dei Santuari — KvK',
+    subtitle: 'Mappa 105 × 105 · Città Reale 21 × 21 · Santuari 3 × 3',
+    planning: 'Pianificazione dei santuari', name: 'Nome del santuario',
+    color: 'Colore del santuario', colorHelp: 'Scegli il colore del riquadro',
+    place: 'Posiziona santuario (clic sulla mappa)', move: 'Sposta santuario',
+    remove: 'Elimina santuario', undo: '↶ Annulla', redo: '↷ Ripristina',
+    clear: 'Cancella tutto', download: 'Scarica la griglia come immagine',
+    howTo: 'Come si usa',
+    helpPlace: '• Posiziona: scegli un nome e fai clic sulla casella centrale del santuario.',
+    helpMove: '• Sposta: seleziona un santuario e fai clic sulla nuova casella centrale.',
+    helpRemove: '• Elimina: fai clic sul santuario da rimuovere.',
+    helpHistory: '• Annulla/Ripristina: annulla o ripristina le modifiche.',
+    helpPan: '• Tieni premuto il tasto destro e trascina per spostare la mappa.',
+    helpSize: '• Ogni santuario occupa 3 × 3 caselle.',
+    helpTowers: '• Le quattro torri 3 × 3 sono segnate agli angoli della Città Reale.',
+    helpOverlap: '• Non sono consentite sovrapposizioni né occupare la Città Reale.',
+    helpInvalid: '• Le posizioni non valide vengono ignorate senza avvisi.',
+    mapTitle: 'ZONA MALEDETTA DELLA CITTÀ REALE / REGNO 177',
+    zoomTitle: 'Zoom della mappa', zoom: 'Ingrandimento', zoomOut: '− Riduci',
+    zoomIn: '+ Ingrandisci', zoomReset: 'Reimposta zoom',
+    zoomHelp: 'Puoi anche spostare la vista trascinando con il tasto destro del mouse.',
+    placeMode: 'Modalità attuale: posiziona santuario.',
+    moveMode: 'Modalità attuale: sposta santuario. Selezionane uno, poi fai clic sulla nuova casella centrale.',
+    removeMode: 'Modalità attuale: elimina santuario.', stats: 'Santuari',
+    countByName: 'Conteggio per nome', none: 'Nessun santuario per ora.',
+    legend: 'LEGENDA DEI SANTUARI', placed: 'Santuari posizionati',
+    theoretical: 'Totale teorico', totalPlaced: 'TOTALE SANTUARI POSIZIONATI',
+    emptyLegend: 'Nessun santuario posizionato per ora.',
+    confirmClear: 'Cancellare tutti i santuari dal progetto?', city: 'CITTÀ REALE',
+    towers: ['OVEST','NORD','EST','SUD'], panHint: 'Inserisci un nome personalizzato', otherOption: 'Altro'
+  }
+};
+
+let currentLanguage = 'es';
+
+function tr(key) {
+  return translations[currentLanguage][key] || translations.es[key] || key;
+}
+
+function applyLanguage(language) {
+  currentLanguage = translations[language] ? language : 'es';
+  document.documentElement.lang = currentLanguage;
+  const ids = {
+    languageLabel:'language', appTitle:'appTitle', appSubtitle:'subtitle',
+    planningTitle:'planning', nameLabel:'name', colorLabel:'color',
+    colorHelp:'colorHelp', place:'place', move:'move', remove:'remove',
+    undo:'undo', redo:'redo', clear:'clear', downloadImage:'download',
+    howToTitle:'howTo', helpPlace:'helpPlace', helpMove:'helpMove',
+    helpRemove:'helpRemove', helpHistory:'helpHistory', helpPan:'helpPan',
+    helpSize:'helpSize', helpTowers:'helpTowers', helpOverlap:'helpOverlap',
+    helpInvalid:'helpInvalid', mapTitle:'mapTitle', zoomPanelTitle:'zoomTitle',
+    zoomLabel:'zoom', zoomOut:'zoomOut', zoomIn:'zoomIn',
+    zoomReset:'zoomReset', zoomHelp:'zoomHelp'
+  };
+  Object.entries(ids).forEach(([id,key]) => {
+    const element = $(id);
+    if (element) element.textContent = tr(key);
+  });
+  $('customName').placeholder = tr('panHint');
+  const otherOption = $('name').querySelector('option[value="Otros"]');
+  if (otherOption) otherOption.textContent = tr('otherOption');
+  const nameSelect = $('name');
+  if (nameSelect && nameSelect.value === 'Otros') $('customName').style.display = 'block';
+  $('modeInfo').textContent = modeDescription(mode);
+  draw();
+}
+
+function modeDescription(which) {
+  return which === 'move' ? tr('moveMode') :
+    which === 'remove' ? tr('removeMode') : tr('placeMode');
+}
+
+
+function cfg() {
+  return {
+    cols: 105,
+    rows: 105,
+    sw: SANCTUARY_SIZE,
+    sh: SANCTUARY_SIZE,
+    city: {
+      x: 42,
+      y: 42,
+      w: 21,
+      h: 21
+    }
+  };
+}
+
+function resize() {
+  const c = cfg();
+
+  canvas.width = c.cols * cell;
+  canvas.height = c.rows * cell;
+
+  draw();
+}
+
+// Cuadrantes A, B, C y D.
+function qof(x, y) {
+  if (x < 52.5) {
+    return y < 52.5 ? 'A' : 'B';
+  }
+
+  return y < 52.5 ? 'C' : 'D';
+}
+
+// Convierte la casilla central seleccionada en la esquina superior
+// izquierda de un santuario 3 x 3.
+function fromCenter(cx, cy, name, color = '#57432f') {
+  return {
+    x: cx - 1,
+    y: cy - 1,
+    sw: SANCTUARY_SIZE,
+    sh: SANCTUARY_SIZE,
+    name: name,
+    color: color
+  };
+}
+
+function intersectsCity(s) {
+  const city = cfg().city;
+
+  return (
+    s.x < city.x + city.w &&
+    s.x + s.sw > city.x &&
+    s.y < city.y + city.h &&
+    s.y + s.sh > city.y
+  );
+}
+
+function overlapsSanctuary(a, b) {
+  return (
+    a.x < b.x + b.sw &&
+    a.x + a.sw > b.x &&
+    a.y < b.y + b.sh &&
+    a.y + a.sh > b.y
+  );
+}
+
+function isValid(s, ignoredIndex = -1) {
+  const c = cfg();
+
+  if (
+    s.x < 0 ||
+    s.y < 0 ||
+    s.x + s.sw > c.cols ||
+    s.y + s.sh > c.rows
+  ) {
+    return false;
+  }
+
+  if (intersectsCity(s)) {
+    return false;
+  }
+
+  for (let i = 0; i < data.length; i++) {
+    if (i === ignoredIndex) continue;
+
+    if (overlapsSanctuary(s, data[i])) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function drawGrid() {
+  const c = cfg();
+
+  ctx.fillStyle = '#dfc9a8';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Contorno exterior del mapa de 105 × 105.
+  ctx.strokeStyle = '#20252b';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(2, 2, canvas.width - 4, canvas.height - 4);
+
+  // Cuadrícula: cada casilla se distingue claramente.
+  ctx.beginPath();
+  ctx.strokeStyle = '#bda17a';
+  ctx.lineWidth = 1;
+
+  for (let x = 0; x <= c.cols; x++) {
+    ctx.moveTo(x * cell + 0.5, 0);
+    ctx.lineTo(x * cell + 0.5, canvas.height);
+  }
+  for (let y = 0; y <= c.rows; y++) {
+    ctx.moveTo(0, y * cell + 0.5);
+    ctx.lineTo(canvas.width, y * cell + 0.5);
+  }
+  ctx.stroke();
+
+  // Líneas más visibles cada 5 casillas para facilitar la lectura.
+  ctx.beginPath();
+  ctx.strokeStyle = '#927653';
+  ctx.lineWidth = 1.4;
+  for (let i = 0; i <= 105; i += 5) {
+    const p = i * cell + 0.5;
+    ctx.moveTo(p, 0);
+    ctx.lineTo(p, canvas.height);
+    ctx.moveTo(0, p);
+    ctx.lineTo(canvas.width, p);
+  }
+  ctx.stroke();
+}
+function drawQuadrants() {
+  ctx.strokeStyle = '#80694d';
+  ctx.lineWidth = 2;
+
+  // Límites entre los cuatro cuadrantes.
+  ctx.beginPath();
+  ctx.moveTo(52.5 * cell, 0);
+  ctx.lineTo(52.5 * cell, canvas.height);
+  ctx.moveTo(0, 52.5 * cell);
+  ctx.lineTo(canvas.width, 52.5 * cell);
+  ctx.stroke();
+}
+
+function drawCity() {
+  const city = cfg().city;
+
+  ctx.fillStyle = 'rgba(111, 74, 137, 0.58)';
+  ctx.fillRect(
+    city.x * cell,
+    city.y * cell,
+    city.w * cell,
+    city.h * cell
+  );
+
+  ctx.strokeStyle = '#59356f';
+  ctx.lineWidth = 3;
+
+  ctx.strokeRect(
+    city.x * cell + 1.5,
+    city.y * cell + 1.5,
+    city.w * cell - 3,
+    city.h * cell - 3
+  );
+
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = 'bold 17px Arial';
+
+  ctx.shadowColor = 'rgba(0,0,0,0.8)';
+  ctx.shadowBlur = 3;
+  ctx.shadowOffsetX = 1;
+  ctx.shadowOffsetY = 1;
+
+  ctx.fillText(
+    tr('city'),
+    (city.x + city.w / 2) * cell,
+    (city.y + city.h / 2) * cell
+  );
+
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+
+  // Cañones de 3 × 3 en las cuatro esquinas del recuadro 21 × 21.
+  // Superior izquierda = Oeste; superior derecha = Norte;
+  // inferior derecha = Este; inferior izquierda = Sur.
+  const towers = [
+    { name: tr('towers')[0], x: city.x, y: city.y, color: '#e74c3c' },
+    { name: tr('towers')[1], x: city.x + city.w - 3, y: city.y, color: '#3498db' },
+    { name: tr('towers')[2], x: city.x + city.w - 3, y: city.y + city.h - 3, color: '#2ecc71' },
+    { name: tr('towers')[3], x: city.x, y: city.y + city.h - 3, color: '#f1c40f' }
+  ];
+
+  towers.forEach(t => {
+    const tx = t.x * cell;
+    const ty = t.y * cell;
+    const size = 3 * cell;
+    ctx.fillStyle = t.color;
+    ctx.fillRect(tx + 1, ty + 1, size - 2, size - 2);
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(tx + 1.5, ty + 1.5, size - 3, size - 3);
+    ctx.fillStyle = t.name === tr('towers')[3] ? '#20252b' : '#ffffff';
+    ctx.font = 'bold 8px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(t.name, tx + size / 2, ty + size / 2, size - 2);
+  });
+
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+}
+
+function drawSanctuary(s, index) {
+  const x = s.x * cell;
+  const y = s.y * cell;
+  const w = s.sw * cell;
+  const h = s.sh * cell;
+
+  const selected = mode === 'move' && moving === index;
+
+  ctx.fillStyle = selected ? '#8d633d' : (s.color || '#57432f');
+  ctx.fillRect(x + 1, y + 1, w - 2, h - 2);
+
+  ctx.strokeStyle = selected ? '#ffdf70' : '#35271c';
+  ctx.lineWidth = selected ? 3 : 1.5;
+  ctx.strokeRect(
+    x + (selected ? 1.5 : 0.75),
+    y + (selected ? 1.5 : 0.75),
+    w - (selected ? 3 : 1.5),
+    h - (selected ? 3 : 1.5)
+  );
+
+  const name = (s.name || '').trim();
+
+  if (!name) return;
+
+  // Texto centrado, con borde oscuro para aumentar el contraste.
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  let fontSize = 10;
+  ctx.font = `bold ${fontSize}px Arial`;
+
+  const maxWidth = w - 4;
+
+  while (
+    ctx.measureText(name).width > maxWidth &&
+    fontSize > 6
+  ) {
+    fontSize--;
+    ctx.font = `bold ${fontSize}px Arial`;
+  }
+
+  let displayName = name;
+
+  if (ctx.measureText(displayName).width > maxWidth) {
+    while (
+      displayName.length > 1 &&
+      ctx.measureText(displayName + '…').width > maxWidth
+    ) {
+      displayName = displayName.slice(0, -1);
+    }
+
+    displayName += '…';
+  }
+
+  ctx.lineWidth = 2.5;
+  ctx.strokeStyle = '#302216';
+  ctx.strokeText(displayName, x + w / 2, y + h / 2, maxWidth);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText(displayName, x + w / 2, y + h / 2, maxWidth);
+
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+}
+
+function updateStats() {
+  const q = { A: 0, B: 0, C: 0, D: 0 };
+  const nameCounts = new Map();
+
+  data.forEach(s => {
+    const cx = s.x + 1;
+    const cy = s.y + 1;
+    q[qof(cx, cy)]++;
+
+    const name = (s.name || '').trim();
+    if (name) {
+      const key = name.toLocaleLowerCase('es');
+      const current = nameCounts.get(key) || { name, count: 0 };
+      current.count++;
+      nameCounts.set(key, current);
+    }
+  });
+
+  const sortedCounts = [...nameCounts.values()]
+    .sort((a, b) => a.name.localeCompare(b.name, 'es'));
+
+  const nameSummary = sortedCounts.length
+    ? '<br><br><b>' + escapeHtml(tr('countByName')) + ':</b>' +
+      sortedCounts.map(item =>
+        '<br>' + escapeHtml(item.name) + ': ' + item.count
+      ).join('')
+    : '<br><br><b>' + escapeHtml(tr('countByName')) + ':</b><br>' + escapeHtml(tr('none'));
+
+  $('stats').innerHTML =
+    '<b>' + escapeHtml(tr('stats')) + ':</b> ' + data.length +
+    '<br>A: ' + q.A +
+    ' | B: ' + q.B +
+    ' | C: ' + q.C +
+    ' | D: ' + q.D +
+    nameSummary;
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, char => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[char]);
+}
+
+function draw() {
+  drawGrid();
+  drawQuadrants();
+  drawCity();
+
+  data.forEach((s, i) => drawSanctuary(s, i));
+
+  updateStats();
+}
+
+function pos(e) {
+  const r = canvas.getBoundingClientRect();
+  const c = cfg();
+
+  return {
+    x: Math.floor((e.clientX - r.left) * c.cols / r.width),
+    y: Math.floor((e.clientY - r.top) * c.rows / r.height)
+  };
+}
+
+function findSanctuaryAt(x, y) {
+  return data.findIndex(s =>
+    x >= s.x &&
+    x < s.x + s.sw &&
+    y >= s.y &&
+    y < s.y + s.sh
+  );
+}
+
+
+function setMode(newMode) {
+  mode = newMode;
+  moving = -1;
+
+  $('modeInfo').textContent = modeDescription(mode);
+  canvas.style.cursor = mode === 'remove' ? 'pointer' : 'crosshair';
+
+  draw();
+}
+
+canvas.addEventListener('click', e => {
+  const p = pos(e);
+
+  if (
+    p.x < 0 ||
+    p.y < 0 ||
+    p.x >= cfg().cols ||
+    p.y >= cfg().rows
+  ) {
+    return;
+  }
+
+  if (mode === 'remove') {
+    const index = findSanctuaryAt(p.x, p.y);
+
+    if (index >= 0) {
+      saveHistory();
+      data.splice(index, 1);
+    }
+
+    draw();
+    return;
+  }
+
+  if (mode === 'move') {
+    if (moving < 0) {
+      moving = findSanctuaryAt(p.x, p.y);
+      draw();
+      return;
+    }
+
+    const index = moving;
+    const original = data[index];
+
+    if (!original) {
+      moving = -1;
+      draw();
+      return;
+    }
+
+    const candidate = fromCenter(
+      p.x,
+      p.y,
+      original.name,
+      original.color || '#57432f'
+    );
+
+    if (isValid(candidate, index)) {
+      saveHistory();
+      original.x = candidate.x;
+      original.y = candidate.y;
+      original.sw = SANCTUARY_SIZE;
+      original.sh = SANCTUARY_SIZE;
+    }
+
+    moving = -1;
+    draw();
+    return;
+  }
+
+  // Modo colocar: el clic representa el centro del 3 x 3.
+  const selectedName = $('name').value;
+  const name = selectedName === 'Otros'
+    ? $('customName').value.trim()
+    : selectedName;
+
+  if (!name) {
+    $('customName').focus();
+    return;
+  }
+
+  const nuevo = fromCenter(p.x, p.y, name, $('sanctuaryColor').value);
+
+  if (!isValid(nuevo)) {
+    // Sin alertas: simplemente no coloca el santuario.
+    return;
+  }
+
+  saveHistory();
+  data.push(nuevo);
+  draw();
+});
+
+$('name').addEventListener('change', () => {
+  const customName = $('customName');
+  const useCustomName = $('name').value === 'Otros';
+  customName.style.display = useCustomName ? 'block' : 'none';
+  if (useCustomName) customName.focus();
+});
+
+$('place').addEventListener('click', () => setMode('place'));
+$('move').addEventListener('click', () => setMode('move'));
+$('remove').addEventListener('click', () => setMode('remove'));
+$('undo').addEventListener('click', undo);
+$('redo').addEventListener('click', redo);
+
+$('clear').addEventListener('click', () => {
+  if (confirm(tr('confirmClear'))) {
+    if (data.length) saveHistory();
+    data = [];
+    moving = -1;
+    draw();
+  }
+});
+
+$('downloadImage').addEventListener('click', () => {
+  // Exporta el mapa con título, resumen y una leyenda agrupada por nombre y color.
+  const title = tr('mapTitle');
+  const sanctuaryTotal = data.length;
+
+  const c = cfg();
+  const city = c.city;
+  const totalCells = c.cols * c.rows - city.w * city.h;
+  const maxSanctuaries = Math.floor(totalCells / (SANCTUARY_SIZE * SANCTUARY_SIZE));
+
+  // Agrupar por nombre para mostrar el total de cada nombre, de mayor a menor.
+  // Se conserva un color representativo por nombre para identificarlo en la leyenda.
+  const groups = new Map();
+  data.forEach(s => {
+    const name = (s.name || '').trim() || 'Sin nombre';
+    const color = s.color || '#57432f';
+    const key = name.toLocaleLowerCase('es');
+    if (!groups.has(key)) groups.set(key, { name, color, count: 0 });
+    groups.get(key).count++;
+  });
+  const legendItems = [...groups.values()].sort((a, b) =>
+    b.count - a.count ||
+    a.name.localeCompare(b.name, 'es', { sensitivity: 'base' })
+  );
+
+  const titleHeight = 92;
+  const padding = 18;
+  const legendRowHeight = 27;
+  const legendHeaderHeight = 34;
+  const legendFooterHeight = 36;
+  const legendPadding = 14;
+  const legendHeight = legendPadding * 2 + legendHeaderHeight +
+    Math.max(1, legendItems.length) * legendRowHeight + legendFooterHeight;
+  const output = document.createElement('canvas');
+  output.width = canvas.width + padding * 2;
+  output.height = canvas.height + titleHeight + legendHeight + padding * 3;
+
+  const outCtx = output.getContext('2d');
+  outCtx.fillStyle = '#f1f3f5';
+  outCtx.fillRect(0, 0, output.width, output.height);
+
+  outCtx.fillStyle = '#20252b';
+  outCtx.fillRect(padding, padding, canvas.width, titleHeight);
+  outCtx.fillStyle = '#ffffff';
+  outCtx.font = 'bold 22px Arial';
+  outCtx.textAlign = 'center';
+  outCtx.textBaseline = 'middle';
+  outCtx.fillText(
+    title,
+    padding + canvas.width / 2,
+    padding + 28,
+    canvas.width - 24
+  );
+  outCtx.font = 'bold 17px Arial';
+  outCtx.fillText(
+    `${tr('placed')}: ${sanctuaryTotal}  |  ${tr('theoretical')}: ${maxSanctuaries}`,
+    padding + canvas.width / 2,
+    padding + 65,
+    canvas.width - 24
+  );
+
+  const mapY = padding + titleHeight;
+  outCtx.drawImage(canvas, padding, mapY);
+
+  outCtx.strokeStyle = '#20252b';
+  outCtx.lineWidth = 4;
+  outCtx.strokeRect(
+    padding + 1,
+    mapY + 1,
+    canvas.width - 2,
+    canvas.height - 2
+  );
+
+  // Leyenda en la esquina inferior derecha de la imagen exportada.
+  const panelWidth = Math.min(520, canvas.width - 24);
+  const panelX = padding + canvas.width - panelWidth;
+  const panelY = mapY + canvas.height + padding;
+  outCtx.fillStyle = '#ffffff';
+  outCtx.fillRect(panelX, panelY, panelWidth, legendHeight);
+  outCtx.strokeStyle = '#20252b';
+  outCtx.lineWidth = 2;
+  outCtx.strokeRect(panelX, panelY, panelWidth, legendHeight);
+
+  outCtx.textAlign = 'left';
+  outCtx.textBaseline = 'middle';
+  outCtx.fillStyle = '#20252b';
+  outCtx.font = 'bold 17px Arial';
+  outCtx.fillText(tr('legend'), panelX + legendPadding, panelY + 19);
+
+  let rowY = panelY + legendPadding + legendHeaderHeight;
+  if (legendItems.length === 0) {
+    outCtx.font = '14px Arial';
+    outCtx.fillStyle = '#555';
+    outCtx.fillText(tr('emptyLegend'), panelX + legendPadding, rowY);
+  } else {
+    legendItems.forEach(item => {
+      outCtx.fillStyle = item.color;
+      outCtx.fillRect(panelX + legendPadding, rowY - 7, 14, 14);
+      outCtx.strokeStyle = '#333333';
+      outCtx.lineWidth = 1;
+      outCtx.strokeRect(panelX + legendPadding, rowY - 7, 14, 14);
+
+      outCtx.fillStyle = '#20252b';
+      outCtx.font = 'bold 14px Arial';
+      const label = `${item.name}: ${item.count}`;
+      const maxTextWidth = panelWidth - legendPadding * 3 - 22;
+      outCtx.fillText(label, panelX + legendPadding + 23, rowY, maxTextWidth);
+      rowY += legendRowHeight;
+    });
+  }
+
+  outCtx.strokeStyle = '#d2d5d8';
+  outCtx.beginPath();
+  outCtx.moveTo(panelX + legendPadding, panelY + legendHeight - legendFooterHeight);
+  outCtx.lineTo(panelX + panelWidth - legendPadding, panelY + legendHeight - legendFooterHeight);
+  outCtx.stroke();
+
+  outCtx.fillStyle = '#20252b';
+  outCtx.font = 'bold 15px Arial';
+  outCtx.fillText(
+    `${tr('totalPlaced')}: ${sanctuaryTotal}`,
+    panelX + legendPadding,
+    panelY + legendHeight - 18,
+    panelWidth - legendPadding * 2
+  );
+
+  const link = document.createElement('a');
+  link.download = 'zona_maldita_reino_177.png';
+  link.href = output.toDataURL('image/png');
+  link.click();
+});
+
+// Arrastrar con el botón derecho para desplazar la vista dentro del área con scroll.
+const editorWrap = $('editorWrap');
+let panning = false;
+let panStartX = 0;
+let panStartY = 0;
+let scrollStartLeft = 0;
+let scrollStartTop = 0;
+
+editorWrap.addEventListener('contextmenu', event => {
+  event.preventDefault();
+});
+
+editorWrap.addEventListener('mousedown', event => {
+  if (event.button !== 2) return;
+  event.preventDefault();
+  panning = true;
+  panStartX = event.clientX;
+  panStartY = event.clientY;
+  scrollStartLeft = editorWrap.scrollLeft;
+  scrollStartTop = editorWrap.scrollTop;
+  editorWrap.style.cursor = 'grabbing';
+});
+
+window.addEventListener('mousemove', event => {
+  if (!panning) return;
+  editorWrap.scrollLeft = scrollStartLeft - (event.clientX - panStartX);
+  editorWrap.scrollTop = scrollStartTop - (event.clientY - panStartY);
+});
+
+window.addEventListener('mouseup', event => {
+  if (event.button !== 2 || !panning) return;
+  panning = false;
+  editorWrap.style.cursor = '';
+});
+
+
+// Zoom de la plantilla con control lateral.
+const zoomInput = $('zoom');
+const zoomValue = $('zoomValue');
+const mapFrame = document.querySelector('.map-frame');
+let zoomLevel = 1;
+
+function applyZoom(value) {
+  zoomLevel = Math.max(0.5, Math.min(2, Number(value) / 100));
+  canvas.style.width = `${1050 * zoomLevel}px`;
+  canvas.style.height = `${1050 * zoomLevel}px`;
+  mapFrame.style.width = `${1054 * zoomLevel}px`;
+  mapFrame.style.height = `${1054 * zoomLevel}px`;
+  zoomInput.value = String(Math.round(zoomLevel * 100));
+  zoomValue.textContent = `${Math.round(zoomLevel * 100)}%`;
+}
+
+$('languageToggle').addEventListener('click', () => {
+  const control = $('languageControl');
+  const open = control.classList.toggle('open');
+  $('languageToggle').setAttribute('aria-expanded', String(open));
+});
+document.querySelectorAll('[data-language]').forEach(button => {
+  button.addEventListener('click', () => {
+    applyLanguage(button.dataset.language);
+    $('languageControl').classList.remove('open');
+    $('languageToggle').setAttribute('aria-expanded', 'false');
+  });
+});
+document.addEventListener('click', event => {
+  if (!$('languageControl').contains(event.target)) {
+    $('languageControl').classList.remove('open');
+    $('languageToggle').setAttribute('aria-expanded', 'false');
+  }
+});
+
+zoomInput.addEventListener('input', () => applyZoom(zoomInput.value));
+$('zoomOut').addEventListener('click', () => applyZoom(Number(zoomInput.value) - 10));
+$('zoomIn').addEventListener('click', () => applyZoom(Number(zoomInput.value) + 10));
+$('zoomReset').addEventListener('click', () => applyZoom(100));
+
+resize();
+setMode('place');
+updateHistoryButtons();
+applyLanguage('es');
+</script>
+
+</body>
+</html>
